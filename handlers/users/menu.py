@@ -4,12 +4,11 @@ from aiogram.dispatcher.filters import Command
 from aiogram.utils.markdown import hbold
 from loader import dp
 from keyboards.default import menuMain,menuSearch
-from states import Test
+from states import StateBot
+from utils.scraping import getVideos,getPopularVideos
 
-from utils.scraping import getVideos
 
-
-@dp.message_handler(state=Test.Q1)
+@dp.message_handler(state=StateBot.S1)
 async def answer_q1(message: types.Message, state: FSMContext):
     answer = message.text
 
@@ -24,24 +23,36 @@ async def show_menu(message: types.Message):
     await message.answer("Выберите товар из меню ниже", reply_markup=menuMain)
 
 
-@dp.message_handler(text="Найти Видео с YouTube")
-async def get_cot(message: types.Message):
-    await message.answer("Введите название видео",reply_markup=menuSearch)
-    await Test.Q2.set()
-
-
-
 @dp.message_handler(content_types=['text'])
 async def get_back(message: types.Message,state: FSMContext):
     if message.text == "Назад":
         await message.answer(text="",reply_markup=menuMain)
+
+    elif message.text == "Найти Видео с YouTube":
+        await message.answer("Введите название видео", reply_markup=menuSearch)
+        await StateBot.S2.set()
+
+    elif message.text == "Популярные видео":
+        data = await state.get_data()
+        count = data.get("answer1")
+        if count == None:
+            count = 10
+        await message.answer("Поиск \U0001F504")
+
+        allVideos = getPopularVideos(count)
+
+        for i in allVideos:
+            await message.answer(text=i)
+
+        await message.answer("Готово \U00002705")
+
     elif message.text == "Сменить количество":
         await message.answer("Введите количество: ")
         await state.update_data(answer1 = message.text)
-        await Test.Q1.set()
+        await StateBot.S1.set()
 
 
-@dp.message_handler(state=Test.Q2)
+@dp.message_handler(state=StateBot.S2)
 async def get_videos_from_youtube(message: types.Message, state: FSMContext):
     await state.update_data(answer2=message.text)
     if message.text == "Назад":

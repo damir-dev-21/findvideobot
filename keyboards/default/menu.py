@@ -4,7 +4,7 @@ menuMain = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text="Найти Видео с YouTube"),
-            KeyboardButton(text="Популярные каналы"),
+            KeyboardButton(text="Популярные видео"),
         ],
         [
             KeyboardButton(text="Сменить количество")
